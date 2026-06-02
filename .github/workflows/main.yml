@@ -19,8 +19,10 @@ jobs:
         include:
           - platform: x64
             artifact_name: WoWDumpFix-x64
+            out_dir: x64
           - platform: Win32
             artifact_name: WoWDumpFix-x32
+            out_dir: Win32
 
     steps:
       - name: Checkout repository
@@ -33,22 +35,20 @@ jobs:
         run: |
           msbuild WoWDumpFix.sln `
             /p:Configuration=Release `
-            /p:Platform=${{ matrix.platform }} `
+            /p:Platform="${{ matrix.platform }}" `
             /m `
             /v:minimal
 
       - name: List output files (debug)
         run: |
-          echo "=== Searching all .dll and .dp64 files ==="
+          echo "=== All build output files ==="
           Get-ChildItem -Recurse -Include "*.dll","*.dp64","*.pdb" | Select-Object FullName
 
-      - name: Upload build artifact
+      - name: Upload artifact
         uses: actions/upload-artifact@v4
         with:
           name: ${{ matrix.artifact_name }}
           path: |
-            x64/Release/WoWDumpFix.*
-            Win32/Release/WoWDumpFix.*
-            WoWDumpFix/x64/Release/WoWDumpFix.*
-            WoWDumpFix/Win32/Release/WoWDumpFix.*
+            ${{ matrix.out_dir }}/Release/WoWDumpFix.*
+            WoWDumpFix/${{ matrix.out_dir }}/Release/WoWDumpFix.*
           if-no-files-found: warn
